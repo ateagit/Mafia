@@ -11,13 +11,14 @@ import HomePage from './Pages/HomePage';
 import LobbyPage from './Pages/LobbyPage';
 import GamePage from './Pages/GamePage';
 import React, { useReducer } from 'react';
+import NewGameScreen from './Pages/NewGameScreen';
 
 const initialState = {
     screen: 'home',
     nickname: '',
     code: '',
     host: '',
-    players: '',
+    players: [],
     lobbyReady: false,
     isHost: false,
     role: '',
@@ -79,8 +80,10 @@ function App() {
     };
 
     const gameStart = ({ role }) => {
+        // todo: ROLE should be eunum
+        dispatch({ type: 'set-role', role: role.toLowerCase() });
+
         dispatch({ type: 'change-screen', screen: 'game' });
-        dispatch({ type: 'set-role', role });
     };
 
     useEffect(() => {
@@ -91,7 +94,7 @@ function App() {
 
         socket.on('lobby-confirm', confirmLobby);
         socket.on('lobby-join', (res) => dispatch({ type: 'lobby-join', ...res }));
-        socket.on('lobby-ready', dispatch({ type: 'lobby-ready' }));
+        socket.on('lobby-ready', () => dispatch({ type: 'lobby-ready' }));
         socket.on('game-start', gameStart);
     }, []);
 
@@ -102,7 +105,7 @@ function App() {
             component = <HomePage />;
             break;
         case 'lobby':
-            component = <LobbyPage />;
+            component = <NewGameScreen />;
             break;
         case 'game':
             component = <GamePage />;
