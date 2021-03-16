@@ -34,10 +34,12 @@ function App() {
             <Router>
                 <Switch>
                     <Route exact path="/">
-                        <Home />
+                        {/* <Home /> */}
+                        {component}
                     </Route>
                     <Route path="/play">
-                        <PlayScreen />
+                        {/* <PlayScreen /> */}
+                        {component}
                     </Route>
                 </Switch>
             </Router>
