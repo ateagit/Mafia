@@ -26,7 +26,7 @@ function startNight(io, socket, mafiaGame) {
 
         io.in(roomID).emit('night-start', new NightStartDTO(TIME_TO_VOTE));
 
-        setTimeout(endNight(io, socket, mafiaGame), TIME_TO_VOTE);
+        setTimeout(() => endNight(io, socket, mafiaGame), TIME_TO_VOTE); // TODO fixed bug
     });
 }
 
@@ -48,9 +48,10 @@ function endNight(io, socket, mafiaGame) {
     const winningRole = room.getWinningRole();
     if (winningRole !== null) {
         io.in(roomID).emit('game-over', new GameOverDTO(winningRole, room.getPlayersByRole(winningRole)));
-    } else {
-        DayStateChangeEvents.eventHandlersRegistration(io, socket, mafiaGame);
     }
+    // else {
+    //     DayStateChangeEvents.st(io, socket, mafiaGame);
+    // }
     room.voteHandler.resetVotes();
 }
 

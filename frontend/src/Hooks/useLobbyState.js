@@ -68,11 +68,13 @@ export default function useLobbyState() {
     };
 
     const onGameStart = ({ role }) => {
-        console.log(role);
+        console.log(state.isHost);
         // TODO: ROLE should be eunum
         dispatch({ type: 'set-role', role: role.toLowerCase() });
 
         dispatch({ type: 'change-screen', screen: 'game' });
+        // does only host send this?
+        state.isHost && setTimeout(() => socket.emit('start-night'), 2000);
     };
 
     const onLobbyCode = ({ code }) => {

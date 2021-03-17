@@ -35,10 +35,15 @@ function startDay(io, socket, mafiaGame) {
  * @param {MafiaGame} mafiaGame
  */
 function endDiscussion(io, socket, mafiaGame) {
+    console.log('discussion-end', socket.player.nickname);
     const { roomID } = socket.player;
     const room = mafiaGame.gameRoomsDict[roomID];
 
-    const playerChosen = room.voteHandler.getDaytimeVotedPlayer();
+    let playerChosen = room.voteHandler.getDaytimeVotedPlayer();
+
+    if (playerChosen) {
+        playerChosen = playerChosen.nickname;
+    }
 
     io.in(roomID).emit('discussion-end', new DiscussionEndDTO(playerChosen));
     room.voteHandler.resetVotes();

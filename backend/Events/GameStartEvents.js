@@ -36,8 +36,8 @@ function broadcastRandomRoleToEachPlayer(io, players, availableRoles) {
 
         const role = availableRoles[randomRoleIndex];
         const player = playersDeepCopy[randomPlayerIndex];
-
-        player.role = role;
+        players.find((p) => p.nickname === player.nickname).role = role;
+        // player.role = role;
         io.to(player.socketID).emit('game-start', new GameStartDTO(role));
 
         // Delete the player and the role which was just allocated

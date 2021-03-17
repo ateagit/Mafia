@@ -186,6 +186,7 @@ export default function useGameState() {
                 ),
                 medic: state.alivePlayers,
                 civilian: [],
+                jester: [], // TODO CHANGED
             }[role];
 
             dispatch({
@@ -202,6 +203,11 @@ export default function useGameState() {
                 status: `${playerKilled} was killed in the night`,
                 playerKilled,
             });
+
+            if (generalState.isHost) {
+                console.log('start-day');
+                setTimeout(() => socket.emit('start-day'), 2000);
+            }
         }
 
         function onDayStart({ timeToVote }) {
@@ -214,11 +220,20 @@ export default function useGameState() {
         }
 
         function onDiscussionEnd({ playersOnTrial }) {
+            console.log(playersOnTrial);
+            if (playersOnTrial === null) {
+                // TODO update status
+                generalState.isHost && setTimeout(() => socket.emit('start-night'), 2000); // TODO CHANGED
+                return;
+            }
+
             dispatch({
                 type: 'discussion-end',
                 status: constructPlayersOnTrialStatus(playersOnTrial),
-                votablePlayers: !playersOnTrial.includes(generalState.nickname) ? playersOnTrial : [],
+                votablePlayers: playersOnTrial !== generalState.nickname ? [playersOnTrial] : [],
             });
+
+            generalState.isHost && setTimeout(() => socket.emit('start-trial'), 2000); // TODO CHANGED
         }
 
         function onTrialStart({ timeToVote }) {

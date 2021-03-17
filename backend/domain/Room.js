@@ -51,7 +51,6 @@ class Room {
 
     getPlayersByRole(role) {
         const playersOfTheRole = [];
-
         this.players.forEach((player) => {
             if (player.role === role) {
                 playersOfTheRole.push(player);
