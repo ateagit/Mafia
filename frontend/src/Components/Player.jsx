@@ -24,7 +24,12 @@ export default function Player({ playerName, style, childRef }) {
         votingState: { votablePlayers, vote, playersWhoVoted, type, isOnTrial },
     } = state;
 
-    // A player is dead if they are not in the alivePlayers list.
+    /*
+     A player is dead if they are not in the alivePlayers list.
+     Note that this is different from isDead in gameState.
+     isDead refers to if the client/you is dead in the game
+     currentPlayerIsDead refers to if the player being rendered is dead
+    */
     const currentPlayerIsDead = !alivePlayers.includes(playerName);
 
     // A player is hoverable if they are votable.
