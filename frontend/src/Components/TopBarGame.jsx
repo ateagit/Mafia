@@ -6,7 +6,7 @@ import styles from '../Styles/TopBarGame.module.css';
 import ModalMUI from '../Modal/ModalMUI';
 import SettingDialog from '../Pages/SettingDialog';
 import TopBarSettings from './TopBarSettings';
-import { GeneralContext } from '../App';
+import { LobbyContext } from '../App';
 import RolesAndRules from './RolesAndRules';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Timer from './Timer';
@@ -26,7 +26,7 @@ const StyledIconButton = withStyles({
 })(IconButton);
 
 const TopBarGame = ({ showTimer, showRole }) => {
-    const { state } = useContext(GeneralContext);
+    const { state } = useContext(LobbyContext);
     const [open, setOpen] = useState(false);
     const [openInfo, setOpenInfo] = useState(false);
     const userName = state.nickname;

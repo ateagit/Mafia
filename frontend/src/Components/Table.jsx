@@ -1,23 +1,24 @@
 import React, { useRef, useEffect, useState, useContext } from 'react';
 import Player from './Player';
 import styles from '../Styles/Table.module.css';
-import { GeneralContext } from '../App';
+import { LobbyContext } from '../App';
 import { GameContext } from '../Pages/GamePage';
 import { Button } from '@material-ui/core';
 import socket from '../Socket';
 import classNames from 'classnames';
+import { debounce } from 'debounce';
 
 /**
- *
- * @param playerState [{playerId: <unique id string>, name: <string>, state: <"alive", "dead", "onTrial">}]
- *
+ * The table component represents the elliptical table that the players are rendered around.
+ * @returns table component with players.
  */
 export default function Table() {
-    const { state: generalState } = useContext(GeneralContext);
+    const { state: lobbyState } = useContext(LobbyContext);
     const { state: gameState, dispatch } = useContext(GameContext);
 
-    const isNight = gameState.dayPeriod === 'Night';
-    const amIDead = !gameState.alivePlayers.includes(generalState.nickname);
+    const isNight = gameState.dayPeriod === 'night';
+    const isDead = gameState.isDead;
+    const isOnTrial = gameState.votingState.isOnTrial;
 
     // apply styles based on whether certain props is true
     const tableWrapperStyle = classNames({
@@ -33,7 +34,15 @@ export default function Table() {
     // ref to keep track of if first Render has happend (this was suggested online)
     const firstRender = useRef(true);
 
-    // we need to keep track of px values of all players
+    /*
+        Because the players need to be sitting at arbitary points around the table,
+        absolute positioning is used relative to the table div. Each player is arranged
+        around the table such that they are at an equal angle apart from each other. 
+        The positions of each player (x, y) is calculated using the equations of 
+        an ellipse (as the table is an ellipse). The playerCoordinates are tracked in 
+        the playerCoords state variable. This variable changes is updated when the 
+        window is resized.
+    */
     const [playerCoords, setPlayerCoords] = useState(initCoords());
 
     useEffect(() => {
@@ -48,13 +57,12 @@ export default function Table() {
 
     // initially, just put everyone at 0,0
     function initCoords() {
-        const numPlayers = generalState.players.length;
+        const numPlayers = lobbyState.players.length;
 
         const angleBetweenPlayers = 360 / numPlayers;
 
-        return generalState.players.map((player, idx) => {
+        return lobbyState.players.map((player, idx) => {
             return {
-                playerId: player,
                 name: player,
                 top: 0,
                 left: 0,
@@ -70,7 +78,6 @@ export default function Table() {
 
     /**
      * this used the parametric equations of a ellipse (i.e. the round table)
-     *
      */
     function getCoordinatesFromAngleAroundEllipse(angleDegrees, xRadius, yRadius) {
         const rads = ((angleDegrees + 90) * Math.PI) / 180;
@@ -107,7 +114,6 @@ export default function Table() {
     const computeAllCoordinates = () => {
         if (tableRef.current) {
             const newCoords = playerCoords.map((player) => ({
-                playerId: player.playerId,
                 name: player.name,
                 angle: player.angle,
                 onTrial: player.onTrial,
@@ -116,18 +122,6 @@ export default function Table() {
             setPlayerCoords(newCoords);
         }
     };
-
-    /** This is taken from https://www.pluralsight.com/guides/re-render-react-component-on-window-resize to throttle events */
-    function debounce(fn, ms) {
-        let timer;
-        return (_) => {
-            clearTimeout(timer);
-            timer = setTimeout((_) => {
-                timer = null;
-                fn.apply(this, arguments);
-            }, ms);
-        };
-    }
 
     function abstainHandler() {
         socket.emit(`trial-vote`, { votingFor: `abstain Vote` });
@@ -142,7 +136,7 @@ export default function Table() {
         }
 
         // we also want the positions to be computed after the window is resized
-        const debouncedResizeHandler = debounce(computeAllCoordinates);
+        const debouncedResizeHandler = debounce(computeAllCoordinates, 100);
         window.addEventListener('resize', debouncedResizeHandler);
 
         return () => {
@@ -153,37 +147,37 @@ export default function Table() {
     return (
         <div className={tableWrapperStyle}>
             <div className={styles.table} ref={tableRef}>
+                {/* Players around table are rendered here */}
                 {playerCoords
                     .filter((p) => !p.onTrial)
                     .map((p) => {
-                        const { playerId, name, top, left } = p;
+                        const { name, top, left } = p;
 
                         return (
                             <Player
-                                key={playerId}
-                                playerId={playerId}
+                                key={name}
                                 playerName={name}
                                 childRef={playerRef}
                                 style={{ top, left, position: 'absolute' }}
                             />
                         );
                     })}
-
+                {/* Players on trial are put in this div */}
                 <div className={styles.trialBox}>
                     {playerCoords
                         .filter((p) => p.onTrial)
                         .map((p) => {
-                            const { playerId, name } = p;
+                            const { name } = p;
 
                             return (
                                 <>
-                                    <Player key={playerId} playerId={playerId} playerName={name} childRef={playerRef} />{' '}
+                                    <Player key={name} playerName={name} childRef={playerRef} />{' '}
                                     <Button
-                                        onClick={() => {
-                                            abstainHandler();
-                                        }}
+                                        onClick={abstainHandler}
                                         style={{
-                                            visibility: (gameState.phase !== 'trial-start' || amIDead) && 'hidden',
+                                            // hide the abstain button if player is dead or on trial
+                                            visibility:
+                                                (gameState.phase !== 'trial-start' || isDead || isOnTrial) && 'hidden',
                                         }}
                                         variant="contained"
                                     >

@@ -3,6 +3,7 @@
 .container {
     padding: 1em 1em 1em 3em;
     transition: all 3s;
+    text-transform: capitalize;
 }
 
 .day {

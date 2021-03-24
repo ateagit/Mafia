@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import socket from '../Socket';
-import { GeneralContext } from '../App';
+import { LobbyContext } from '../App';
 import { withStyles, TextField, Button } from '@material-ui/core';
 import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
 import styles from '../Styles/HomePage.module.css';
@@ -54,7 +54,7 @@ const CustomCreateButton = withStyles({
 })(Button);
 
 export default function HomePage(props) {
-    const { dispatch } = useContext(GeneralContext);
+    const { dispatch } = useContext(LobbyContext);
     const [nickname, setNickname] = useState('');
     const [code, setCode] = useState(props.url);
     const [joinDisabled, setjoinDisabled] = useState(true);

@@ -7,7 +7,7 @@ import GamePage from './Pages/GamePage';
 import NewGameScreen from './Pages/NewGameScreen';
 import useLobbyState from './Hooks/useLobbyState';
 
-export const GeneralContext = React.createContext();
+export const LobbyContext = React.createContext();
 
 /**
  * Main React Component
@@ -34,7 +34,7 @@ function App() {
     }
 
     return (
-        <GeneralContext.Provider value={{ state, dispatch }}>
+        <LobbyContext.Provider value={{ state, dispatch }}>
             <Router>
                 <Switch>
                     <Route exact path="/">
@@ -45,7 +45,7 @@ function App() {
                     </Route>
                 </Switch>
             </Router>
-        </GeneralContext.Provider>
+        </LobbyContext.Provider>
     );
 }
 

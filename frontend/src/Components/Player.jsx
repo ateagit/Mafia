@@ -1,89 +1,105 @@
 import styles from '../Styles/Player.module.css';
 import classNames from 'classnames';
 import { GameContext } from '../Pages/GamePage';
-import { GeneralContext } from '../App';
 import socket from '../Socket';
 import { useContext } from 'react';
 
-export default function Player({ playerId, playerName, style, childRef }) {
-    const { state: generalState } = useContext(GeneralContext);
-    const { state: gameState, dispatch } = useContext(GameContext);
+/**
+ * The player component represents a specific player on the board.
+ * Styling is applied conditionally based on the state of the player e.g. dead, voted, is you etc.
+ * @param { playerName, style, childRef } playerName is nickname of player, style is
+ * additional custom styling, childRef is used by table component to get height/width info
+ * @returns component representing player.
+ */
+export default function Player({ playerName, style, childRef }) {
+    const { state, dispatch } = useContext(GameContext);
 
-    const isDead = !gameState.alivePlayers.includes(playerName);
+    // Destructuring relevant properties from game state.
+    const {
+        alivePlayers,
+        nickname,
+        role,
+        checkedPlayers,
+        isDead,
+        votingState: { votablePlayers, vote, playersWhoVoted, type, isOnTrial },
+    } = state;
 
-    const amIDead = !gameState.alivePlayers.includes(generalState.nickname);
+    // A player is dead if they are not in the alivePlayers list.
+    const currentPlayerIsDead = !alivePlayers.includes(playerName);
 
-    const isHoverable =
-        !!gameState.votingState.type &&
-        gameState.votingState.votablePlayers.includes(playerName) &&
-        !isDead &&
-        !amIDead;
-    const hasVoted = gameState.votingState.playersWhoVoted.includes(playerName);
-    const isVoted = gameState.votingState.vote === playerName;
-    const isPlayer = generalState.nickname === playerName;
+    // A player is hoverable if they are votable.
+    const currentPlayerIsHoverable = !isOnTrial && !isDead && votablePlayers.includes(playerName);
 
-    // forces the detctive to only be able to look at one other player per day
-    const detectiveHasSuspected = gameState.votingState.vote !== '';
+    // A player has voted if they are in the playersWhoVoted list.
+    const currentPlayerHasVoted = playersWhoVoted.includes(playerName);
 
-    var mafiaString = '';
-    for (const suspectedPlayer of gameState.checkedPlayers) {
-        if (suspectedPlayer.nickname === playerName) {
-            mafiaString = suspectedPlayer.isMafia ? ' (Mafia)' : ' (Not Mafia)';
-        }
-    }
+    // A player is a voteTarget if you have voted for them.
+    const currentPlayerIsVoteTarget = vote === playerName;
+
+    // A player is you if its playername matches your name.
+    const currentPlayerIsPlayer = nickname === playerName;
 
     // apply styles based on whether certain props is true
     const playerStyle = classNames({
         [styles.playerWrapper]: true,
-        [styles.player]: isPlayer,
-        [styles.isHoverable]: isHoverable,
-        [styles.hasVoted]: hasVoted,
-        [styles.isClicked]: isVoted,
-        [styles.isDead]: isDead,
+        [styles.player]: currentPlayerIsPlayer,
+        [styles.isHoverable]: currentPlayerIsHoverable,
+        [styles.hasVoted]: currentPlayerHasVoted,
+        [styles.isClicked]: currentPlayerIsVoteTarget,
+        [styles.isDead]: currentPlayerIsDead,
     });
 
-    // this only allows clicks if a player is actually hoverable.
+    // this only allows clicks to propagate if a player is actually hoverable and is not currently clicked.
     function validateOnClick(fn) {
         return (...args) => {
-            if (!isDead && isHoverable && !isVoted) {
+            const detectiveHasSuspected = role === 'detective' && vote;
+
+            if (currentPlayerIsHoverable && !currentPlayerIsVoteTarget && !detectiveHasSuspected) {
                 fn(...args);
             }
         };
     }
 
     function onClick() {
-        switch (gameState.votingState.type) {
+        // Emit the correct vote event depending on what type of vote it is.
+        switch (type) {
             case 'role':
-                if (!(gameState.role === 'detective' && detectiveHasSuspected)) {
-                    socket.emit(`${gameState.role}-vote`, {
-                        votingFor: playerName,
-                    });
-                    dispatch({
-                        type: 'show-selected',
-                        status: `Selected ${playerName} for ability`,
-                        votedPlayer: playerName,
-                    });
-                    break;
-                }
+                socket.emit(`${role}-vote`, { votingFor: playerName });
+                dispatch({ type: 'show-selected', status: `Selected ${playerName} for ability`, vote: playerName });
                 break;
             case 'discussion':
                 socket.emit(`day-vote`, { votingFor: playerName });
-                dispatch({ type: 'show-selected', status: `Voted ${playerName} for trial`, votedPlayer: playerName });
+                dispatch({ type: 'show-selected', status: `Voted ${playerName} for trial`, vote: playerName });
                 break;
             case 'trial':
                 socket.emit(`trial-vote`, { votingFor: playerName });
-                dispatch({ type: 'show-selected', status: `Voted to kill ${playerName}`, votedPlayer: playerName });
+                dispatch({ type: 'show-selected', status: `Voted to kill ${playerName}`, vote: playerName });
                 break;
             default:
                 throw new Error('Invalid voting type');
         }
     }
 
+    // Get a string representing if a player is a mafia or not (making sure they are a detective)
+    function getDetectiveString() {
+        if (role !== 'detective') {
+            return null;
+        }
+
+        for (const checkedPlayer of checkedPlayers) {
+            if (checkedPlayer.nickname === playerName) {
+                return checkedPlayer.isMafia ? ' (Mafia)' : ' (Not Mafia)';
+            }
+        }
+
+        return null;
+    }
+
     return (
         <div className={playerStyle} style={style} ref={childRef} onClick={validateOnClick(onClick)}>
             <div className={styles.playerText}>
-                <p>{playerName.concat(isDead ? ' (DEAD)' : '')}</p>
-                <p>{mafiaString}</p>
+                <p>{playerName.concat(currentPlayerIsDead ? ' (DEAD)' : '')}</p>
+                <p>{getDetectiveString()}</p>
             </div>
         </div>
     );

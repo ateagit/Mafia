@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import { Card, CardContent, CardHeader, Typography } from '@material-ui/core';
-import { GeneralContext } from '../App';
+import { LobbyContext } from '../App';
 
 const useStyles = makeStyles({
     root: {
@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 });
 
 const PlayerList = () => {
-    const { state } = useContext(GeneralContext);
+    const { state } = useContext(LobbyContext);
     const classes = useStyles();
 
     return (
