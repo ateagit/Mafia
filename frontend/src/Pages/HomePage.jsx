@@ -7,7 +7,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 
 import socket from '../Socket';
-import { GeneralContext } from '../Context';
+import { LobbyContext } from '../Context';
 import styles from '../Styles/HomePage.module.css';
 
 const CustomTextField = withStyles({
@@ -57,7 +57,7 @@ const CustomCreateButton = withStyles({
 })(Button);
 
 export default function HomePage(props) {
-    const { dispatch } = useContext(GeneralContext);
+    const { dispatch } = useContext(LobbyContext);
     const [nickname, setNickname] = useState('');
     // const [{ code }, setCode] = useState(props);
     const [code, setCode] = useState(props.code);

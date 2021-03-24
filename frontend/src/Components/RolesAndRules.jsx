@@ -2,7 +2,7 @@ import { React, useContext } from 'react';
 import { Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import styles from '../Styles/RolesAndRules.module.css';
-import { GameContext, GeneralContext } from '../Context';
+import { GameContext, LobbyContext } from '../Context';
 
 const useStyles = makeStyles({
     root: {
@@ -21,7 +21,7 @@ const useStyles = makeStyles({
  * @param userRole Civilian/Medic/Detective/Mafia - gets user's role to display what their current role is
  */
 const RolesAndRules = ({ inLobby }) => {
-    const { state: gameState } = useContext(!inLobby ? GameContext : GeneralContext);
+    const { state: gameState } = useContext(!inLobby ? GameContext : LobbyContext);
     let userRole = '';
 
     if (!inLobby) {

@@ -2,16 +2,16 @@ import classNames from 'classnames';
 import React, { useContext } from 'react';
 import styles from '../Styles/Player.module.css';
 
-import { GameContext, GeneralContext } from '../Context';
+import { GameContext, LobbyContext } from '../Context';
 import socket from '../Socket';
 
 export default function Player({ playerName, style, childRef }) {
-    const { state: generalState } = useContext(GeneralContext);
+    const { state: lobbyState } = useContext(LobbyContext);
     const { state: gameState, dispatch } = useContext(GameContext);
 
     const isDead = !gameState.alivePlayers.includes(playerName);
 
-    const amIDead = !gameState.alivePlayers.includes(generalState.nickname);
+    const amIDead = !gameState.alivePlayers.includes(lobbyState.nickname);
 
     const isHoverable =
         !!gameState.votingState.type &&
@@ -20,7 +20,7 @@ export default function Player({ playerName, style, childRef }) {
         !amIDead;
     const hasVoted = gameState.votingState.playersWhoVoted.includes(playerName);
     const isVoted = gameState.votingState.vote === playerName;
-    const isPlayer = generalState.nickname === playerName;
+    const isPlayer = lobbyState.nickname === playerName;
 
     // forces the detective to only be able to look at one other player per day
     const detectiveHasSuspected = gameState.votingState.vote !== '';

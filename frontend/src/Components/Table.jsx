@@ -3,7 +3,7 @@ import { Button } from '@material-ui/core';
 import classNames from 'classnames';
 import Player from './Player';
 import styles from '../Styles/Table.module.css';
-import { GeneralContext, GameContext } from '../Context';
+import { LobbyContext, GameContext } from '../Context';
 
 import socket from '../Socket';
 
@@ -13,11 +13,11 @@ import socket from '../Socket';
  *
  */
 export default function Table() {
-    const { state: generalState } = useContext(GeneralContext);
+    const { state: lobbyState } = useContext(LobbyContext);
     const { state: gameState, dispatch } = useContext(GameContext);
 
     const isNight = gameState.dayPeriod === 'Night';
-    const amIDead = !gameState.alivePlayers.includes(generalState.nickname);
+    const amIDead = !gameState.alivePlayers.includes(lobbyState.nickname);
 
     // apply styles based on whether certain props is true
     const tableWrapperStyle = classNames({
@@ -35,11 +35,11 @@ export default function Table() {
 
     // initially, just put everyone at 0,0
     function initCoords() {
-        const numPlayers = generalState.players.length;
+        const numPlayers = lobbyState.players.length;
 
         const angleBetweenPlayers = 360 / numPlayers;
 
-        return generalState.players.map((player, idx) => ({
+        return lobbyState.players.map((player, idx) => ({
             // return {
             playerId: player,
             name: player,

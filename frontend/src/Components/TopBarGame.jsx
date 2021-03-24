@@ -10,7 +10,7 @@ import TopBarSettings from './TopBarSettings';
 import RolesAndRules from './RolesAndRules';
 
 import Timer from './Timer';
-import { GameContext, GeneralContext } from '../Context';
+import { GameContext, LobbyContext } from '../Context';
 
 /**
  * @param userDetails [{userName: <string>, role: <string>}]
@@ -26,7 +26,7 @@ const StyledIconButton = withStyles({
 })(IconButton);
 
 const TopBarGame = ({ showTimer, showRole }) => {
-    const { state } = useContext(GeneralContext);
+    const { state } = useContext(LobbyContext);
     const [open, setOpen] = useState(false);
     const [openInfo, setOpenInfo] = useState(false);
     const userName = state.nickname;

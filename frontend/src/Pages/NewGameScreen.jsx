@@ -5,7 +5,7 @@ import PlayerList from '../Components/PlayerList';
 import LobbySettings from '../Components/LobbySettings';
 import Chatbox from '../Components/Chatbox';
 import styles from '../Styles/NewGameScreen.module.css';
-import { GeneralContext } from '../Context';
+import { LobbyContext } from '../Context';
 import socket from '../Socket';
 
 import RolesAndRules from '../Components/RolesAndRules';
@@ -28,7 +28,7 @@ const StyledButton = withStyles({
 })(Button);
 
 const NewGameScreen = () => {
-    const { state } = useContext(GeneralContext);
+    const { state } = useContext(LobbyContext);
     const [open, setOpen] = useState(false);
     const [openInfo, setOpenInfo] = useState(false);
     const startGame = () => {

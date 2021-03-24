@@ -1,7 +1,7 @@
 import { useContext, useReducer, useEffect } from 'react';
 import { constructPlayersOnTrialStatus, nightTimeStatus } from '../GameUtils';
 
-import { GeneralContext } from '../Context';
+import { LobbyContext } from '../Context';
 import socket from '../Socket';
 
 const initialState = {
@@ -182,27 +182,27 @@ const reducer = (state, action) => {
 
 export default function useGameState() {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { state: generalState } = useContext(GeneralContext);
+    const { state: lobbyState } = useContext(LobbyContext);
 
     /**
      * This effect will run on first render to initialise the alive players.
      * We may need to lie about the dependency so that players dont just 'leave'
      */
     useEffect(() => {
-        const { role } = generalState;
+        const { role } = lobbyState;
         const extraRoleState = role === 'detective' ? { checkedPlayers: [] } : {};
 
         dispatch({
             type: 'init',
-            alivePlayers: generalState.players,
+            alivePlayers: lobbyState.players,
             role,
             ...extraRoleState,
         });
-    }, [generalState]);
+    }, [lobbyState]);
 
     useEffect(() => {
         function onNightStart({ timeToVote }) {
-            const amIDead = !state.alivePlayers.includes(generalState.nickname);
+            const amIDead = !state.alivePlayers.includes(lobbyState.nickname);
             if (amIDead) {
                 dispatch({
                     type: 'night-start',
@@ -213,15 +213,15 @@ export default function useGameState() {
                 return;
             }
 
-            const { role } = generalState;
+            const { role } = lobbyState;
 
             const status = nightTimeStatus[role];
 
             const votablePlayers = {
-                mafia: state.alivePlayers.filter((p) => p !== generalState.nickname),
+                mafia: state.alivePlayers.filter((p) => p !== lobbyState.nickname),
                 detective: state.alivePlayers.filter(
                     (p) =>
-                        p !== generalState.nickname &&
+                        p !== lobbyState.nickname &&
                         state.checkedPlayers &&
                         !state.checkedPlayers.some((c) => c.nickname === p)
                 ),
@@ -246,16 +246,16 @@ export default function useGameState() {
             });
 
             if (!isGameOver) {
-                return generalState.isHost && setTimeout(() => socket.emit('start-day'), 2000);
+                return lobbyState.isHost && setTimeout(() => socket.emit('start-day'), 2000);
             }
         }
 
         function onDayStart({ timeToVote }) {
-            const amIDead = !state.alivePlayers.includes(generalState.nickname);
+            const amIDead = !state.alivePlayers.includes(lobbyState.nickname);
             dispatch({
                 type: 'day-start',
                 status: amIDead ? 'You are dead' : 'Select someone to be on trial',
-                votablePlayers: state.alivePlayers.filter((p) => p !== generalState.nickname),
+                votablePlayers: state.alivePlayers.filter((p) => p !== lobbyState.nickname),
                 timeToVote,
             });
         }
@@ -267,21 +267,21 @@ export default function useGameState() {
                     status: 'No one is on trial',
                 });
 
-                generalState.isHost && setTimeout(() => socket.emit('start-night'), 2000); // TODO CHANGED
+                lobbyState.isHost && setTimeout(() => socket.emit('start-night'), 2000); // TODO CHANGED
                 return;
             }
 
             dispatch({
                 type: 'discussion-end',
                 status: constructPlayersOnTrialStatus(playerOnTrial),
-                votablePlayers: playerOnTrial !== generalState.nickname ? [playerOnTrial] : [],
+                votablePlayers: playerOnTrial !== lobbyState.nickname ? [playerOnTrial] : [],
             });
 
-            generalState.isHost && setTimeout(() => socket.emit('start-trial'), 2000); // TODO CHANGED
+            lobbyState.isHost && setTimeout(() => socket.emit('start-trial'), 2000); // TODO CHANGED
         }
 
         function onTrialStart({ timeToVote }) {
-            const amIDead = !state.alivePlayers.includes(generalState.nickname);
+            const amIDead = !state.alivePlayers.includes(lobbyState.nickname);
             dispatch({
                 type: 'trial-start',
                 status: amIDead
@@ -303,7 +303,7 @@ export default function useGameState() {
                 playerKilled,
             });
             if (!isGameOver) {
-                generalState.isHost && setTimeout(() => socket.emit('start-night'), 2000); // TODO CHANGED
+                lobbyState.isHost && setTimeout(() => socket.emit('start-night'), 2000); // TODO CHANGED
             }
         }
 
@@ -356,7 +356,7 @@ export default function useGameState() {
 
             socket.removeListener('suspect-reveal', onSuspectReveal);
         };
-    }, [state, generalState]);
+    }, [state, lobbyState]);
 
     return [state, dispatch];
 }
